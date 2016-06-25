@@ -54,20 +54,17 @@ class GuessANumberApi(remote.Service):
         """Creates new game"""
         user = User.query(User.name == request.user_name).get()
         if not user:
-            raise endpoints.NotFoundException(
-                    'A User with that name does not exist!')
+            raise endpoints.NotFoundException('A User with that name does not exist!')
         try:
-            game = Game.new_game(user.key, request.min,
-                                 request.max, request.attempts)
+            game = Game.new_game(user.key, request.best_of)
         except ValueError:
-            raise endpoints.BadRequestException('Maximum must be greater '
-                                                'than minimum!')
+            raise endpoints.BadRequestException('best_of must be an odd number!')
 
         # Use a task queue to update the average attempts remaining.
         # This operation is not needed to complete the creation of a new game
         # so it is performed out of sequence.
-        taskqueue.add(url='/tasks/cache_average_attempts')
-        return game.to_form('Good luck playing Guess a Number!')
+        # taskqueue.add(url='/tasks/cache_average_attempts')
+        return game.to_form('Good luck playing rock paper scissors!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
