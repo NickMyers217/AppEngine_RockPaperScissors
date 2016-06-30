@@ -26,6 +26,10 @@ class User(ndb.Model):
             else:
                 lost += 1.0
 
+        # Return 0.0 if they have no scores
+        if won == 0.0 and lost == 0.0:
+            return 0.0
+
         # Calculate win percentage
         return won / (won + lost) * 100.0
 
@@ -47,6 +51,7 @@ class Game(ndb.Model):
     player_move   = ndb.StringProperty(required=False, default="Rock")
     computer_wins = ndb.IntegerProperty(required=False, default=0)
     computer_move = ndb.StringProperty(required=False, default="Rock")
+    move_history  = ndb.StringProperty(required=False, repeated=True)
 
     @classmethod
     def new_game(self, user, best_of):
@@ -155,3 +160,8 @@ class PerformanceForms(messages.Message):
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
     message = messages.StringField(1, required=True)
+
+
+class StringMessages(messages.Message):
+    """Returns a list of strings"""
+    items = messages.StringField(1, repeated=True)

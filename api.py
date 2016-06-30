@@ -13,7 +13,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms, GameForms, PerformanceForms
+    ScoreForms, GameForms, PerformanceForms, StringMessages
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -78,6 +78,20 @@ class RockPaperScissorsAPI(remote.Service):
             raise endpoints.NotFoundException('Game not found!')
 
 
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=StringMessages,
+                      path='history/{urlsafe_game_key}',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """Return a game's move history"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            return StringMessages(items=game.move_history)
+        else:
+            raise endpoints.NotFoundException('Game not found!')
+
+
     @endpoints.method(request_message=DELETE_GAME_REQUEST,
                       response_message=StringMessage,
                       path='game/{urlsafe_game_key}',
@@ -124,6 +138,10 @@ class RockPaperScissorsAPI(remote.Service):
             game.computer_move = 'Paper'
         else:
             game.computer_move = 'Scissors'
+
+        # Add the move to the game's history
+        game.move_history.append('{}, {}'.format(game.player_move,
+                                                 game.computer_move))
 
         # Check to see if the round is a tie
         if game.player_move == game.computer_move:
