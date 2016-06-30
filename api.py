@@ -13,7 +13,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms
+    ScoreForms, GameForms, PerformanceForms
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -45,6 +45,7 @@ class RockPaperScissorsAPI(remote.Service):
         return StringMessage(message='User {} created!'.format(
                 request.user_name))
 
+
     @endpoints.method(request_message=NEW_GAME_REQUEST,
                       response_message=GameForm,
                       path='game',
@@ -62,6 +63,7 @@ class RockPaperScissorsAPI(remote.Service):
 
         return game.to_form('Good luck playing rock paper scissors!')
 
+
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
@@ -75,6 +77,7 @@ class RockPaperScissorsAPI(remote.Service):
         else:
             raise endpoints.NotFoundException('Game not found!')
 
+
     @endpoints.method(request_message=DELETE_GAME_REQUEST,
                       response_message=StringMessage,
                       path='game/{urlsafe_game_key}',
@@ -82,7 +85,7 @@ class RockPaperScissorsAPI(remote.Service):
                       http_method='DELETE')
     def cancel_game(self, request):
         """Cancel a game"""
-        # Get the game and user
+        # Get the game
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
 
         # Make sure the game is not complete
@@ -92,6 +95,7 @@ class RockPaperScissorsAPI(remote.Service):
         # Delete the game
         game.key.delete()
         return StringMessage(message='Game deleted!')
+
 
     @endpoints.method(request_message=MAKE_MOVE_REQUEST,
                       response_message=GameForm,
@@ -172,6 +176,19 @@ class RockPaperScissorsAPI(remote.Service):
         """Return all scores"""
         return ScoreForms(items=[score.to_form() for score in Score.query()])
 
+
+    @endpoints.method(response_message=PerformanceForms,
+                      path='rankings',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """Return all of the users ranked by there win / loss ratio"""
+        return PerformanceForms(items=sorted([user.to_perf_form()
+            for user in User.query()],
+            key=lambda p: p.win_rate,
+            reverse=True))
+
+
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
                       path='scores/user/{user_name}',
@@ -185,5 +202,29 @@ class RockPaperScissorsAPI(remote.Service):
                     'A User with that name does not exist!')
         scores = Score.query(Score.user == user.key)
         return ScoreForms(items=[score.to_form() for score in scores])
+
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=GameForms,
+                      path='games/user/{user_name}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Returns all of an individual User's unfinished games"""
+        # Get the user and make sure they exist
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                    'A User with that name does not exist!')
+
+        # Query for this users active games
+        games = Game \
+            .query(Game.user == user.key) \
+            .filter(Game.game_over == False)
+
+        # Convert the games to a GameForms
+        return GameForms(items=[game.to_form('Time to make a move!')
+            for game in games])
+
 
 api = endpoints.api_server([RockPaperScissorsAPI])

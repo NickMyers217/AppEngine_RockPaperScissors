@@ -12,6 +12,31 @@ class User(ndb.Model):
     name  = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
 
+    def get_win_rate(self):
+        """Return the user's win percentage as a float"""
+        # Get all of the games this user has finished
+        scores = Score.query(Score.user == self.key)
+
+        # Tally up their wins and losses
+        won  = 0.0
+        lost = 0.0
+        for s in scores:
+            if s.won:
+                won += 1.0
+            else:
+                lost += 1.0
+
+        # Calculate win percentage
+        return won / (won + lost) * 100.0
+
+
+    def to_perf_form(self):
+        """Convert the user to a performance form"""
+        form = PerformanceForm()
+        form.user_name = self.name
+        form.win_rate  = self.get_win_rate()
+        return form
+
 
 class Game(ndb.Model):
     """Game object"""
@@ -53,6 +78,11 @@ class Game(ndb.Model):
         the player lost."""
         self.game_over = True
         self.put()
+
+        won = False
+        if self.player_wins > self.computer_wins:
+            won = True
+
         # Add the game to the score 'board'
         score = Score(user=self.user, date=date.today(), won=won,
                       rounds=self.player_wins + self.computer_wins)
@@ -84,6 +114,11 @@ class GameForm(messages.Message):
     computer_move = messages.StringField(9, required=True)
 
 
+class GameForms(messages.Message):
+    """Return multiple GameForms"""
+    items = messages.MessageField(GameForm, 1, repeated=True)
+
+
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
@@ -106,6 +141,15 @@ class ScoreForm(messages.Message):
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+
+class PerformanceForm(messages.Message):
+    user_name = messages.StringField(1, required=True)
+    win_rate  = messages.FloatField(2, required=True)
+
+
+class PerformanceForms(messages.Message):
+    items = messages.MessageField(PerformanceForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):
