@@ -8,7 +8,7 @@ import webapp2
 from google.appengine.api import mail, app_identity
 from api import RockPaperScissorsAPI
 
-from models import User
+from models import User, Game
 
 
 class SendReminderEmail(webapp2.RequestHandler):
@@ -18,14 +18,17 @@ class SendReminderEmail(webapp2.RequestHandler):
         app_id = app_identity.get_application_id()
         users = User.query(User.email != None)
         for user in users:
-            subject = 'This is a reminder!'
-            body = 'Hello {}, try out Guess A Number!'.format(user.name)
-            # This will send test emails, the arguments to send_mail are:
-            # from, to, subject, body
-            mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
-                           user.email,
-                           subject,
-                           body)
+            if Game.query(Game.user == user.key) \
+                   .filter(Game.game_over == False) \
+                   .get() != None:
+                subject = 'Unfinished game of Rock, Paper, Scissors!'
+                body = 'Hello {}, try out Rock, Paper, Scissors!'.format(user.name)
+                # This will send test emails, the arguments to send_mail are:
+                # from, to, subject, body
+                mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
+                               user.email,
+                               subject,
+                               body)
 
 
 app = webapp2.WSGIApplication([
