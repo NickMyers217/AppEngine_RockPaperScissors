@@ -1,0 +1,19 @@
+* What additional properties did you add to your models and why?
+	-> User
+		- I didn't actually add any properties to the user model, but i did add two methods onto it. These methods helped out with the api calls that dealt with ranking Users based on their performance.
+			1) get_win_rate: This method queries all of this user's Scores and returns the percentage of games they have won
+			2) to_perf_form: This method wraps the user name and win rate up into a nice form and returns it
+	-> Game
+		1) best_of: This property specifies how many rounds a player needs to get the best of to win the whole game. I added this since Rock Paper Scissors makes little sense if it is not played as a best of 3, or more
+		2) player_wins: I added this property to track how many wins the player has reached. Since the game will be multiple rounds, this is necessary to determine if they have won
+		3) player_move: This tracks the player's most recent move, so that it can be compared to the computer's most recent move. It is necessary to determine who has won the round
+		4) computer_wins: The same as player_wins but for the computer
+		5) computer_move: The same as player_move but for the computer
+		6) move_history: This property is neccessary to track the set of moves the player and computer made in ever round of the game
+	-> Score
+		1) rounds: I just replaced the guesses property with this property, it tracks how many rounds were played in the game before somebody won it.
+
+* What were some of the trade-offs or struggles you faced when implementing the new game logic?
+	- The only struggle I faced with the game logic itself was making sure I had the proper flow control to account for every scenario possible in a game of Rock Paper Scissors.
+	- I faced far greater struggles while learning the Python datastore API and trying to create effective queries. I felt that the API disguised a lot of how the NoSQL database actually works, so I often questioned the performance of my queries and how they could be made better.
+
