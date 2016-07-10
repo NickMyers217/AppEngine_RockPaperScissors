@@ -74,7 +74,7 @@ given time. Each game can be retrieved or played by using the path parameter `ur
 	- Method: PUT
 	- Parameters: urlsafe_game_key, move
 	- Returns: GameForm with new game state.
-	- Description: Accepts a 'mvoe' and returns the updated state of the game.
+	- Description: Accepts a 'move' and returns the updated state of the game.
 	A move must either be the String "Rock", "Paper", or "Scissors", no action will be taken on invalid moves.
 	If this causes a game to end, a corresponding Score entity will be created.
 

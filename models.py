@@ -48,9 +48,9 @@ class Game(ndb.Model):
     game_over     = ndb.BooleanProperty(required=True)
     user          = ndb.KeyProperty(required=True, kind='User')
     player_wins   = ndb.IntegerProperty(required=False, default=0)
-    player_move   = ndb.StringProperty(required=False, default="Rock")
+    player_move   = ndb.StringProperty(required=False, default="rock")
     computer_wins = ndb.IntegerProperty(required=False, default=0)
-    computer_move = ndb.StringProperty(required=False, default="Rock")
+    computer_move = ndb.StringProperty(required=False, default="rock")
     move_history  = ndb.StringProperty(required=False, repeated=True)
 
     @classmethod
